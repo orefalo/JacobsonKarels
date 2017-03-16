@@ -1,5 +1,5 @@
 
-import java.util.Scanner; 
+import java.util.Scanner;
 
 /*
 Simple Jacobson Karels algorithm,
@@ -11,21 +11,21 @@ Simple Jacobson Karels algorithm,
 public class Jacobson {
 
     // list of samples used for the simulation
-    private static double samples[] = {600, 600, 600, 600, 600, 600, 600, 100, 100, 100, 100, 100, 100, 100, 100, 100, 600, 600, 600, 600, 600};
+    private static float samples[] = {600, 600, 600, 600, 600, 600, 600, 100, 100, 100, 100, 100, 100, 100, 100, 100, 600, 600, 600, 600, 600};
 
 
-    // 100ms is a good start for a typical service call
-    private static double estimatedRTT = 100;
-    private static double deviation = 1;
+    // 10ms is a good start for a typical service call
+    private static float estimatedRTT = 10;
+    private static float deviation = 1;
 
     public static void main(String[] args) {
 
         Scanner scan = new Scanner(System.in);
-        double timeoutVal = estimatedRTT + 4 * deviation;
+        float timeoutVal = estimatedRTT + 4 * deviation;
 
 
         for (int i = 0; i < samples.length; i++) {
-            double sample = samples[i];
+            float sample = samples[i];
 
             timeoutVal = getNewTimeoutVal(sample);
             System.out.println("sample:" + sample + " -> estimateRTT:" + estimatedRTT + "ms maxTimeout:" + timeoutVal + "ms      d:" + deviation);
@@ -35,17 +35,18 @@ public class Jacobson {
         while (true) {
 
             System.out.print("Next API sample timeout (in ms): ");
-            double sample = scan.nextDouble();
+            float sample = scan.nextFloat();
+
 
             timeoutVal = getNewTimeoutVal(sample);
             System.out.println("sample:" + sample + " -> estimateRTT:" + estimatedRTT + "ms maxTimeout:" + timeoutVal + "ms      d:" + deviation);
         }
     }
 
-    public static double getNewTimeoutVal(double sampleRTT) {
+    public static float getNewTimeoutVal(float sampleRTT) {
 
-        double difference = sampleRTT - estimatedRTT;
-        estimatedRTT = estimatedRTT + (difference / 8);
+        float difference = sampleRTT - estimatedRTT;
+        estimatedRTT = estimatedRTT + (difference / 8F);
 
         // issue: the the formula below negatively reacts to abrupt changes.
         // for instance, 600ms for a while, the timeout raises to 500ms,
@@ -54,7 +55,7 @@ public class Jacobson {
         //	deviation = deviation + (Math.abs(difference) - deviation)/8;
 
         // this formula is mutch better
-        deviation = Math.abs(deviation + (difference - deviation) / 8);
+        deviation = Math.abs(deviation + (difference - deviation) / 8F);
         return estimatedRTT + 4 * deviation;
     }
 }

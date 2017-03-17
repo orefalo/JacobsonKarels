@@ -17,30 +17,29 @@ public class Jacobson {
     // 10ms is a good start for a typical service call
     private static float estimatedRTT = 10;
     private static float deviation = 1;
-    private static final float X=4;
+
+    // This parameter controls how agressively we ramp up to changes
+    private static final float X=.25F;
 
     public static void main(String[] args) {
 
         Scanner scan = new Scanner(System.in);
         float timeoutVal = estimatedRTT + (X * deviation);
 
-
-        for (int i = 0; i < samples.length; i++) {
+        for (int i = 0; i<samples.length; i++) {
 
             float sample = samples[i];
 
-            for(int p=0;p<5;p++) {   
+            for(int p = 0; p<5; p++) {   
                 timeoutVal = getNewTimeoutVal(sample);
                 System.out.println("sample:" + sample + " -> estimateRTT:" + (int)estimatedRTT + "ms maxTimeout:" + (int)timeoutVal + "ms      d:" + deviation);
             }
-
         }
 
         while (true) {
 
             System.out.print("Next API sample timeout (in ms): ");
             float sample = scan.nextFloat();
-
 
             timeoutVal = getNewTimeoutVal(sample);
             System.out.println("sample:" + sample + " -> estimateRTT:" + (int)estimatedRTT + "ms maxTimeout:" + (int)timeoutVal + "ms      d:" + deviation);
@@ -50,9 +49,8 @@ public class Jacobson {
     public static float getNewTimeoutVal(float sampleRTT) {
 
         float difference = sampleRTT - estimatedRTT;
-        estimatedRTT = estimatedRTT + (difference / (2*X));
-       	deviation = deviation + (Math.abs(difference) - deviation)/(2*X);
-
+        estimatedRTT = estimatedRTT + (X*difference);
+       	deviation = deviation + (X*(Math.abs(difference) - deviation));
         return estimatedRTT + (X * deviation);
     }
 }

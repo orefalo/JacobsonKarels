@@ -11,24 +11,28 @@ Simple Jacobson Karels algorithm,
 public class Jacobson {
 
     // list of samples used for the simulation
-    private static float samples[] = {600, 600, 600, 600, 600, 600, 600, 100, 100, 100, 100, 100, 100, 100, 100, 100, 600, 600, 600, 600, 600};
+    private static float samples[] = {600, 600, 100, 100, 100, 100, 600, 600, 600};
 
 
     // 10ms is a good start for a typical service call
     private static float estimatedRTT = 10;
     private static float deviation = 1;
+    private static final float X=4;
 
     public static void main(String[] args) {
 
         Scanner scan = new Scanner(System.in);
-        float timeoutVal = estimatedRTT + 4 * deviation;
+        float timeoutVal = estimatedRTT + (X * deviation);
 
 
         for (int i = 0; i < samples.length; i++) {
+
             float sample = samples[i];
 
-            timeoutVal = getNewTimeoutVal(sample);
-            System.out.println("sample:" + sample + " -> estimateRTT:" + estimatedRTT + "ms maxTimeout:" + timeoutVal + "ms      d:" + deviation);
+            for(int p=0;p<5;p++) {   
+                timeoutVal = getNewTimeoutVal(sample);
+                System.out.println("sample:" + sample + " -> estimateRTT:" + (int)estimatedRTT + "ms maxTimeout:" + (int)timeoutVal + "ms      d:" + deviation);
+            }
 
         }
 
@@ -39,23 +43,16 @@ public class Jacobson {
 
 
             timeoutVal = getNewTimeoutVal(sample);
-            System.out.println("sample:" + sample + " -> estimateRTT:" + estimatedRTT + "ms maxTimeout:" + timeoutVal + "ms      d:" + deviation);
+            System.out.println("sample:" + sample + " -> estimateRTT:" + (int)estimatedRTT + "ms maxTimeout:" + (int)timeoutVal + "ms      d:" + deviation);
         }
     }
 
     public static float getNewTimeoutVal(float sampleRTT) {
 
         float difference = sampleRTT - estimatedRTT;
-        estimatedRTT = estimatedRTT + (difference / 8F);
+        estimatedRTT = estimatedRTT + (difference / (2*X));
+       	deviation = deviation + (Math.abs(difference) - deviation)/(2*X);
 
-        // issue: the the formula below negatively reacts to abrupt changes.
-        // for instance, 600ms for a while, the timeout raises to 500ms,
-        //   then say the service responds at 100ms..
-        // you would expect the timeout to shrink, right? well it doesn't ! it will go up to 700ms before coming down
-        //	deviation = deviation + (Math.abs(difference) - deviation)/8;
-
-        // this formula is mutch better
-        deviation = Math.abs(deviation + (difference - deviation) / 8F);
-        return estimatedRTT + 4 * deviation;
+        return estimatedRTT + (X * deviation);
     }
 }
